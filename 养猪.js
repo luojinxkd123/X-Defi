@@ -3,12 +3,19 @@
 var canAdd=true;
 //广告用尽添加时间间隔(分钟)
 var waitTime=5;
+//是否正在玩大转盘
+var isPlayGame=false;
+//玩游戏时间间隔
+var playWaitTime=0.5;
+//全局屏幕宽度、高度
+var width=device.width;
+var height=device.height;
 //开启添加猪线程
 var add=threads.start(function(){
     log("**开启添加猪线程");
     sleep(3000);
     while(true){
-        if(canAdd){
+        if(!isPlayGame && canAdd){
             clickAddPig();
         }else{
             sleep(5000);
@@ -28,31 +35,92 @@ var add=threads.start(function(){
     }
 });
 //开启合成点击线程
-var add=threads.start(function(){
+var merge=threads.start(function(){
     log("**开启合成点击线程");
     sleep(3000);
     while(true){
-        clickAutoCombinePig();
+        if(!isPlayGame){
+            clickAutoCombinePig();
+        }
     }
 });
 //开启点击确定线程
-var add=threads.start(function(){
+var confirm=threads.start(function(){
     log("**开启点击确定线程");
     sleep(3000);
     while(true){
-        clickConfirm();
+        if(!isPlayGame){
+            clickConfirm();
+        }
     }
 });
 
 //开启看广告线程
-var add=threads.start(function(){
-    log("**开启开启看广告线程");
+var advertise=threads.start(function(){
+    log("**开启看广告线程");
     sleep(3000);
     while(true){
-        seeAdvertisement();
+        if(!isPlayGame){
+            seeAdvertisement();
+        }
     }
 }); 
 
+//开启大转盘线程
+var game=threads.start(function(){
+    log("**开启大转盘线程");
+    sleep(3000);
+    while(true){
+        palyGame();
+    }
+}); 
+
+/**
+ * 玩转盘游戏
+ */
+function palyGame(){
+    var palyGame =id("fl_defense").clickable(true).findOnce();
+    if(palyGame!=null){
+        var palyGameRect=palyGame.bounds();
+        click(palyGameRect.centerX(),palyGameRect.centerY());
+        log("点击进入游戏成功");
+        sleep(3000);
+    }
+    while(true){
+        var playBtn=id("lav_button").clickable(true).findOnce();
+        if(playBtn!=null){
+            isPlayGame=true;//正在游戏
+            var playBtnRect=playBtn.bounds();
+            click(playBtnRect.centerX(),playBtnRect.centerY());
+            log("点击玩游戏成功");
+            sleep(5000);
+            if(id(playBtn.id()).clickable(true).findOnce()==null){//游戏机会充足
+                click(width/2,height*3/5);
+                sleep(3000);
+                clickConfirm();
+                sleep(2000);
+            }
+            var adverUseUpBtn=text("战斗能量不足").findOnce();
+            if(adverUseUpBtn!=null){//游戏机会用尽
+                while(true){
+                    if(id("fl_defense").clickable(true).findOnce()==null){
+                        sleep(1000);
+                        back();
+                        log("点击返回");
+                        sleep(1000);
+                    }else{
+                        break;
+                    }
+                }
+                isPlayGame=false;//游戏结束
+                log("游戏结束，进入"+playWaitTime+"分钟等待");
+                sleep(playWaitTime*60*1000);
+            }
+        }else{
+            break;
+        }
+    }
+}
 /**
  * 点击确定
  */
