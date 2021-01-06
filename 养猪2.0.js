@@ -1,7 +1,5 @@
 //全局参数
-//是否可以添加猪
-var canAdd=true;
-//广告用尽添加时间间隔(分钟)
+//广告用尽添加猪时间间隔(分钟)
 var waitTime=5;
 //是否正在玩大转盘
 var isPlayGame=false;
@@ -17,7 +15,7 @@ var add=threads.start(function(){
     log("**开启添加猪线程");
     sleep(3000);
     while(true){
-        if(!isPlayGame &&canAdd){
+        if(!isPlayGame){
             clickAddPig();
         }else{
             sleep(5000);
@@ -45,15 +43,6 @@ var confirm=threads.start(function(){
     }
 });
 
-//开启看广告线程
-var advertise=threads.start(function(){
-    log("**开启看广告线程");
-    sleep(3000);
-    while(true){
-        seeAdvertisement();
-    }
-}); 
-
 //开启大转盘线程
 var game=threads.start(function(){
     log("**开启大转盘线程");
@@ -74,7 +63,6 @@ function palyGame(){
         log("点击进入游戏成功");
         sleep(5000);
     }
-    
     while(true){
         var playBtn=id("lav_button").findOnce();
         if(playBtn!=null){
@@ -83,29 +71,35 @@ function palyGame(){
             click(playBtnRect.centerX(),playBtnRect.centerY());
             log("点击玩游戏成功");
             sleep(5000);
-            var adBtn=text("免广告获得").clickable(true).findOnce();
-            if(adBtn!=null){
-                    var adBtnRect=adBtn.bounds();
-                    click(adBtnRect.centerX(),adBtnRect.centerY()); 
-                    log("免广告获得游戏次数");
-                    sleep(3000);
-            }
-            var adverUseUpBtn=textContains("战斗能量不足").findOnce();
+            // var adBtn=text("免广告获得").clickable(true).findOnce();
+            // if(adBtn!=null){
+            //         var adBtnRect=adBtn.bounds();
+            //         click(adBtnRect.centerX(),adBtnRect.centerY()); 
+            //         log("免广告获得游戏次数");
+            //         sleep(3000);
+            // }
+            var adverUseUpBtn=text("战斗能量不足").findOnce();
             if(adverUseUpBtn!=null){//游戏机会用尽
-                while(true){
-                    if(id("fl_defense").clickable(true).findOnce()==null){
-                        sleep(1000);
-                        back();
-                        log("点击返回");
-                        sleep(2000);
-                    }else{
-                        break;
+                log("战斗能量不足");
+                if(textContains("剩余 0 次").findOnce()!=null){
+                    log("剩余0次")
+                    while(true){
+                        if(id("fl_defense").clickable(true).findOnce()==null){
+                            sleep(1000);
+                            back();
+                            log("点击返回");
+                            sleep(2000);
+                        }else{
+                            break;
+                        }
                     }
+                    isPlayGame=false;//游戏结束
+                    log("游戏结束，进入"+playWaitTime+"分钟等待");
+                    sleep(playWaitTime*60*1000);
+                    return;
+                }else{
+                    seeAdvertisement();
                 }
-                isPlayGame=false;//游戏结束
-                log("游戏结束，进入"+playWaitTime+"分钟等待");
-                sleep(playWaitTime*60*1000);
-                return;
             }
             //游戏机会充足
             if(text("战斗能量不足").findOnce()==null){
@@ -113,7 +107,7 @@ function palyGame(){
                     click(width/2,height*3/7);
                     sleep(3000);
                     clickConfirm();
-                    sleep(2000);
+                    sleep(5000);
                     if(text("提现").findOnce()!=null){
                         break;
                     }
@@ -144,6 +138,18 @@ function clickAddPig(){
         click(addBtnRect.centerX(),addBtnRect.centerY());
         log("添加小猪成功");
         sleep(random(500,3000));
+        if(text("金币不足").findOnce()!=null){
+            log("金币不足")
+            if(textContains("剩余 0 次").findOnce()!=null){
+                log("剩余0次");
+                log("关闭添加猪，"+waitTime+"分钟后开启猪添加");
+                sleep(2000);
+                back();
+                sleep(waitTime*60*1000);//*分钟后后才开启添加猪的开关
+            }else{
+                seeAdvertisement();
+            }
+        }
     }
 }
 /**
@@ -167,32 +173,17 @@ function clickAutoCombinePig(){
                 log("vip免看视频");
                 sleep(1000);
                 if(text(adverVipBtn.text()).clickable().findOnce()==null){
-                    break;
+                    return;
                 }
             }
         }
+        seeAdvertisement();
     }
 }
 /**
  * 看广告
  */
 function seeAdvertisement(){
-    var adverUseUpBtn=textContains("剩余0次").findOnce();
-    if(adverUseUpBtn!=null){
-        while(true){
-            sleep(1000);
-            back();
-            log("视频次数已用尽");
-            sleep(500);
-            if(text(adverUseUpBtn.text()).clickable().findOnce()==null){
-                canAdd=false;
-                log("关闭添加猪的开关，"+waitTime+"分钟后开启猪添加");
-                sleep(waitTime*60*1000);//*分钟后后才开启添加猪的开关
-                canAdd=true;
-                return;
-            }
-        }
-    }
     var adBtn=text("免广告获得").clickable(true).findOnce();
     if(adBtn!=null){
             var adBtnRect=adBtn.bounds();
