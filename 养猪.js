@@ -6,31 +6,23 @@ var waitTime=5;
 //是否正在玩大转盘
 var isPlayGame=false;
 //玩游戏时间间隔
-var playWaitTime=0.5;
+var playWaitTime=5;
 //全局屏幕宽度、高度
 var width=device.width;
 var height=device.height;
+
+var lock = threads.lock();
 //开启添加猪线程
 var add=threads.start(function(){
     log("**开启添加猪线程");
     sleep(3000);
     while(true){
         if(!isPlayGame && canAdd){
+            lock.lock();
             clickAddPig();
+            lock.unlock();
         }else{
             sleep(5000);
-            var adverUseUpBtn=text("视频次数不足").findOnce();
-            if(adverUseUpBtn!=null){
-                while(true){
-                    sleep(1000);
-                    back();
-                    log("视频次数已用尽");
-                    sleep(500);
-                    if(text(adverUseUpBtn.text()).clickable().findOnce()==null){
-                        break;
-                    }
-                }
-            }
         }
     }
 });
@@ -71,6 +63,7 @@ var game=threads.start(function(){
     log("**开启大转盘线程");
     sleep(3000);
     while(true){
+        isPlayGame=true;//正在游戏
         palyGame();
     }
 }); 
@@ -89,16 +82,16 @@ function palyGame(){
     while(true){
         var playBtn=id("lav_button").clickable(true).findOnce();
         if(playBtn!=null){
-            isPlayGame=true;//正在游戏
             var playBtnRect=playBtn.bounds();
             click(playBtnRect.centerX(),playBtnRect.centerY());
             log("点击玩游戏成功");
             sleep(5000);
-            if(id(playBtn.id()).clickable(true).findOnce()==null){//游戏机会充足
-                click(width/2,height*3/5);
-                sleep(3000);
-                clickConfirm();
-                sleep(2000);
+            var adBtn=text("免广告获得").clickable(true).findOnce();
+            if(adBtn!=null){
+                    var adBtnRect=adBtn.bounds();
+                    click(adBtnRect.centerX(),adBtnRect.centerY()); 
+                    log("免广告获得游戏次数");
+                    sleep(3000);
             }
             var adverUseUpBtn=text("战斗能量不足").findOnce();
             if(adverUseUpBtn!=null){//游戏机会用尽
@@ -107,7 +100,7 @@ function palyGame(){
                         sleep(1000);
                         back();
                         log("点击返回");
-                        sleep(1000);
+                        sleep(2000);
                     }else{
                         break;
                     }
@@ -115,6 +108,17 @@ function palyGame(){
                 isPlayGame=false;//游戏结束
                 log("游戏结束，进入"+playWaitTime+"分钟等待");
                 sleep(playWaitTime*60*1000);
+            }
+            //游戏机会充足
+            while(true){
+                var txBtn=text("提现").findOnce();
+                if(txBtn==null){
+                    click(width/2,height*2/5);
+                    sleep(3000);
+                    clickConfirm();
+                    sleep(2000);
+                    break;
+                }
             }
         }else{
             break;
@@ -142,7 +146,7 @@ function clickAddPig(){
         var addBtnRect=addBtn.bounds();
         click(addBtnRect.centerX(),addBtnRect.centerY());
         log("添加小猪成功");
-        sleep(random(500,1000));
+        sleep(random(500,3000));
     }
     
 }
@@ -177,6 +181,7 @@ function clickAutoCombinePig(){
  * 看广告
  */
 function seeAdvertisement(){
+    lock.lock();
     var adverUseUpBtn=text("视频次数不足").findOnce();
     if(adverUseUpBtn!=null){
         while(true){
@@ -193,6 +198,7 @@ function seeAdvertisement(){
             }
         }
     }
+    lock.unlock();
     var adverBtn=text("看视频领取").clickable(true).findOnce();
     if(adverBtn==null){
         adverBtn=text("看视频开启").clickable(true).findOnce();
