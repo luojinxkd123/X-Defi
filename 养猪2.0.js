@@ -63,24 +63,25 @@ function palyGame(){
         log("进入游戏");
         sleep(5000);
     }
+    //循环玩游戏
     while(true){
-        var playBtn=id("lav_button").findOnce();
+        var playBtn=id("lav_button").findOne(5000);
         if(playBtn!=null){
             isPlayGame=true;//正在游戏
             var playBtnRect=playBtn.bounds();
             click(playBtnRect.centerX(),playBtnRect.centerY());
             log("点击开始作战");
-            sleep(5000);
-            var adverUseUpBtn=text("战斗能量不足").findOnce();
+            var adverUseUpBtn=text("战斗能量不足").findOne(8000);
             if(adverUseUpBtn!=null){//游戏机会用尽
                 log("战斗能量不足");
-                if(textContains("剩余 0 次").findOnce()!=null){
+                var over=textContains("剩余 0 次").findOne(5000);
+                if(over!=null){
                     log("剩余0次")
                     while(true){
                         if(id("fl_defense").clickable(true).findOnce()==null){
                             sleep(1000);
                             back();
-                            log("点击返回");
+                            log("游戏次数不足==》点击返回");
                             sleep(2000);
                         }else{
                             break;
@@ -105,6 +106,17 @@ function palyGame(){
                     if(text("提现").findOnce()!=null){
                         break;
                     }
+                }
+            }
+        }else{
+            while(true){
+                if(id("fl_defense").clickable(true).findOnce()==null){
+                    sleep(1000);
+                    back();
+                    log("没有成功进到游戏==》点击返回");
+                    sleep(2000);
+                }else{
+                    return;
                 }
             }
         }
