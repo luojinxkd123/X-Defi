@@ -60,7 +60,7 @@ function palyGame(){
     if(palyGame!=null){
         var palyGameRect=palyGame.bounds();
         click(palyGameRect.centerX(),palyGameRect.centerY());
-        log("点击进入游戏成功");
+        log("进入游戏");
         sleep(5000);
     }
     while(true){
@@ -69,15 +69,8 @@ function palyGame(){
             isPlayGame=true;//正在游戏
             var playBtnRect=playBtn.bounds();
             click(playBtnRect.centerX(),playBtnRect.centerY());
-            log("点击玩游戏成功");
+            log("点击开始作战");
             sleep(5000);
-            // var adBtn=text("免广告获得").clickable(true).findOnce();
-            // if(adBtn!=null){
-            //         var adBtnRect=adBtn.bounds();
-            //         click(adBtnRect.centerX(),adBtnRect.centerY()); 
-            //         log("免广告获得游戏次数");
-            //         sleep(3000);
-            // }
             var adverUseUpBtn=text("战斗能量不足").findOnce();
             if(adverUseUpBtn!=null){//游戏机会用尽
                 log("战斗能量不足");
@@ -102,9 +95,10 @@ function palyGame(){
                 }
             }
             //游戏机会充足
-            if(text("战斗能量不足").findOnce()==null){
+            if(text("提现").findOne(5000)==null&&textContains("剩余").findOnce()==null){
                 while(true){
                     click(width/2,height*3/7);
+                    log("游戏偷菜操作");
                     sleep(3000);
                     clickConfirm();
                     sleep(5000);
@@ -186,40 +180,46 @@ function clickAutoCombinePig(){
 function seeAdvertisement(){
     var adBtn=text("免广告获得").clickable(true).findOnce();
     if(adBtn!=null){
+        while(true){
             var adBtnRect=adBtn.bounds();
             click(adBtnRect.centerX(),adBtnRect.centerY()); 
             log("免广告获得游戏次数");
             sleep(3000);
+            if(text(adBtn.text()).clickable(true).findOnce()==null){
+                break;
+            }
+        }
     }
     var adverBtn=textStartsWith("看视频").clickable(true).findOnce();
     if(adverBtn!=null){
+        log(adverBtn)
         while(true){
             var adverBtnRect=adverBtn.bounds();
             click(adverBtnRect.centerX(),adverBtnRect.centerY());
             log("点击看视频");
-            sleep(500);
-            if(text(adverBtn.text()).clickable().findOnce()==null){
+            sleep(2000);
+            if(text(adverBtn.text()).clickable(true).findOnce()==null){
                 break;
             }
         }
          //点击关闭视频按钮
-         while (true) {
+        while (true) {
             log("看视频中....");
             sleep(2000);
-            if (className("android.widget.ImageView").clickable(true).drawingOrder(2).findOne(1000)) {
-                关闭 = className("android.widget.ImageView").clickable(true).drawingOrder(2).findOne(500);
-                关闭.click();
-                log("点击=》关闭");
-                break;
-            };
+            // if (className("android.widget.ImageView").clickable(true).drawingOrder(2).findOne(1000)) {
+            //     关闭 = className("android.widget.ImageView").clickable(true).drawingOrder(2).findOne(500);
+            //     关闭.click();
+            //     log("点击=》关闭");
+            //     break;
+            // };
             if (className("android.widget.RelativeLayout").clickable(true).drawingOrder(6).findOne(1000)) {
                 关闭 = className("android.widget.RelativeLayout").clickable(true).drawingOrder(6).findOne(500);
+                log(关闭);
                 关闭.click();
                 log("点击=》关闭");
                 break;
             };
         };
-        sleep(5000);
     }
 }
 
